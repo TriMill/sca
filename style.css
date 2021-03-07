@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Slab:wght@500&display=swap');
+@import url('http://fonts.cdnfonts.com/css/dejavu-sans-mono');
+
+* {
+	--col-theme: #008c95; /* Pantone 321 C */
+	box-sizing: border-box;
+}
+
+html, body {
+	margin: 0;
+	font-family: 'Roboto', sans-serif;
+	font-size: 14pt;
+	height: 100%;
+}
+
+.topbar {
+	height: 80px;
+	width: 100%;
+	background: var(--col-theme);
+	line-height: 77px;
+	text-align: center;
+	font-size: 28pt;
+	font-family: 'Roboto Slab', serif;
+	color: #fff;
+}
+
+.linkbutton {
+	color: #000;
+	background: #ccc;
+	border-radius: 1px;
+	text-decoration: none;
+	text-align: center;
+	padding: 5px 10px 5px 10px;
+	margin: 5px;
+	font-size: 14pt;
+}
+
+.linkbutton:active {
+	background: #aaa;
+}
+
+.main {
+	display: flex;
+	flex-direction: row;
+	margin: 30px;
+	margin-bottom: 0px;
+}
+.main > div {
+	display: flex;
+	flex-direction: column;
+	margin: 20px;
+	margin-bottom: 0px;
+	padding: 10px;
+}
+
+.errors {
+	margin: 50px;
+	margin-top: 0px;
+	padding: 10px;
+	font-size: 11pt;
+	font-family: 'DejaVu Sans Mono', monospace;
+}
+
+.errors > div {
+	margin-bottom: 10px;
+	color: #800;
+}
+
+.colheader {
+	text-align: center;
+	margin-bottom: 10px;
+}
+
+.helpmain {
+	width: 50%;
+	margin: auto;
+	padding-bottom: 150px;
+}
+
+textarea {
+	font-family: 'DejaVu Sans Mono', monospace;
+	font-size: 11pt;
+	border: 1px solid #888;
+	border-radius: 0px;
+}
+
+textarea:active {
+	border: 1px solid var(--col-theme);
+	border-radius: 0px;
+}
+
+code {
+	font-family: 'DejaVu Sans Mono', monospace;
+	font-size: 11pt;
+	padding: 1px 6px 1px 6px;
+	background-color: #ececec;
+	border-radius: 1px;
+}
+
+div.code {
+	display: inline-block;
+	padding: 6px 10px 6px 10px;
+	font-family: 'DejaVu Sans Mono', monospace;
+	font-size: 11pt;
+	background-color: #ececec;
+	border-radius: 1px;
+	border-left: 3px solid #bbb;
+}
+
+h1 {
+	font-family: 'Roboto Slab', serif;
+	font-size: 20pt;
+}
+h2 {
+	font-family: 'Roboto Slab', serif;
+	font-size: 18pt;
+}
+
+hr {
+	color: #ccc;
+	margin: 30px 0 30px 0;
+}
+
+p {
+	margin: 20px 0px 7px 0px;
+}
+
+input {
+	font-size: 16pt;
+}
+
+input[type=text] {
+	margin: 0;
+	padding: 2px;
+	border-radius: 2px;
+	border: 1px solid #ccc;
+}
+
+input[type=text]:focus {
+	border: 1px solid var(--col-theme);
+}

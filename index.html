@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>TriSCA 0.1</title>
+    <meta name="description" content="MCTools" />
+    <meta name="author" content="TriMill" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+	<div class="topbar">
+		TriSCA
+	</div>
+	<div class="main">
+		<div>
+			<div class="colheader">Rules</div>
+			<textarea rows="40" cols="40" id="rules">
+V=aiuə
+S=fsʃx
+Z=vzʒɣ
+S/Z/V_V
+{kg}/{kg}ʷ/_u
+ai/ei/_#
+au/ou/_#</textarea>
+		</div>
+		<div>
+			<div class="colheader">Input</div>
+			<textarea rows="40" cols="40" id="input">
+aifau
+kusni
+aunuxai</textarea>
+		</div>
+		<div>
+			<div class="colheader">&nbsp;</div>
+			<a href="javascript:void(0)" class="linkbutton" id="apply">Apply</a>
+			<a href="help.html" target="_blank" class="linkbutton">Help</a>
+			<a href="https://en.wikipedia.org/wiki/International_Phonetic_Alphabet#Letters" 
+				target="_blank" class="linkbutton">IPA Chart</a>
+		</div>
+		<div>
+			<div class="colheader">Output</div>
+			<textarea rows="40" cols="40" id="output"></textarea>
+		</div>
+	</div>
+	<div class="errors" id="errors"></div>
+	<script src="main.js"></script>
+  </body>
+</html>
