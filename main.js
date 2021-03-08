@@ -44,8 +44,8 @@ rules = {
 };
 
 function applySoundChanges(event) {
-	let rules = document.getElementById("rules").value.split("\n").map(a => a.trim()).filter(a => a.length > 0);
-	let input = document.getElementById("input").value.split(/\s/).map(a => a.trim()).filter(a => a.length > 0);
+	let rules = document.getElementById("rules").value.split("\n").map(a => a.replace(/\s/g,"")).filter(a => a.length > 0);
+	let input = document.getElementById("input").value.split(/\s/g).filter(a => a.length > 0);
 	let outputEl = document.getElementById("output");
 	let errorEl = document.getElementById("errors");
 	log(rules);
@@ -74,7 +74,6 @@ function applyRules(rules, input) {
 			let cursorpos = change.context.indexOf("_");
 			let ctx_before = change.context.slice(0,cursorpos).reverse();
 			let ctx_after = change.context.slice(cursorpos+1);
-			console.log(ctx_before, ctx_after);
 			while(idx < word.length) {
 				let match = getFindMatch(word, change.find, idx, rules.groups);
 				if(match == null) {
@@ -85,7 +84,6 @@ function applyRules(rules, input) {
 					// "find" found, check context
 					let startIdx = idx-1;
 					let endIdx = match[0];
-					console.log(startIdx, endIdx);
 					if(
 						(ctx_before.length == 0 || checkContext(word, startIdx, -1, ctx_before, rules.groups))
 						&& (ctx_after.length == 0 || checkContext(word, endIdx, 1, ctx_after, rules.groups))
@@ -167,7 +165,6 @@ function mkReplacement(replace, groups, groupHits) {
 }
 
 function checkContext(word, idx, dir, ctx, groups) {
-	console.log(ctx);
 	for(segment of ctx) {
 		if(segment.type == "char") {
 			if(segment.name == word[idx]) {
@@ -202,7 +199,6 @@ function checkContext(word, idx, dir, ctx, groups) {
 				return false;
 			}
 		} else if(segment.type == "boundary") {
-			console.log(dir, idx, word.length, word);
 			if(dir == 1 && idx >= word.length) {
 				return true;
 			} else if(dir == -1 && idx < 0) {
