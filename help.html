@@ -35,10 +35,10 @@
 			<code>k/kʷ/_u</code>, which reads as "replace all instance of <code>k</code> with <code>kʷ</code> whenever followed by <code>u</code>". The section before the first slash is what to find (the target), after the first slash is what to replace it with (the replacement), and (optionally) after the second slash is the environment to perform the replacement in (the context). Each rule must be listed on its own line in the "Rules" field.
 		</p>
 		<p>
-			If the replacement is left empty, the rule will delete anything matching it. The target can also be left empty, but if the context is left empty this will enter an infinte loop and crash the page.
+			If the replacement is left empty, the rule will delete anything matching it. If the context is left empty or ommited the rule will apply to all matches of the target. The target cannot be left empty.
 		</p>
 		<p>
-			Any line in the "Rules" field beginning with a semicolon (;) will be ignored. This can be used to add comments.
+			Any line in the "Rules" field beginning with a semicolon (;) will be ignored, which can be used to add comments.
 		</p>
 		<h2>Reserved characters</h2>
 		<p>
@@ -58,7 +58,9 @@
 		On the left-hand side of the equals sign is the category's name, which must be a single character. On the right is a list of segments to include. If no commas are used, each character will be counted as its own segment, for example <code>V=aeiou</code> will create the class V containing a, e, i, o, and u. If you require multiple characters per segment, use commas to separate them. For example, <code>A=tʃ,dʒ</code> creates a category containing tʃ and dʒ. Categories should be written in the "Rules" field above your sound changes, each on their own line.
 		</p>
 		<p>
-		If you have a category you only need to use once, instead of defining it you can create a nonce category, a list of segments enclosd in {curly braces}. For example, the above rule could be rewritten as <code>{kgŋ}/{kgŋ}ʷ/_u</code>. These can also be comma-seperated, for example <code>{td}/{tʃ,dʒ}/_i</code> will replace t with tʃ and d with dʒ before i.
+		If you have a category you only need to use once, instead of defining it you can create a nonce category, a list of segments enclosd in {curly braces}. For example, the above rule could be rewritten as <code>{kgŋ}/{kgŋ}ʷ/_u</code>. These can also be comma-seperated, for example <code>{td}/{tʃ,dʒ}/_i</code> will replace t with tʃ and d with dʒ before i. Named categories can be included in nonce categories, resulting in the named category's contents being "extracted" into the nonce category. For example,
+		<div class="code">P=ptk<br />B=bdg<br />{Pfsʃ}/{Bvzʒ}/V_V</div><br />
+		is equivalent to <code>{ptkfsʃ}/{bdgvzʒ}/V_V</code>. Named categories cannot be nested inside other named categories.
 		</p>
 		
 		<p>

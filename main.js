@@ -184,11 +184,15 @@ function parseRules(rules) {
 				if(parts.length == 2) {
 					parts[2] = "_";
 				}
-				let find = mkSCPart(parts[0], groups, true);
-				let replace = mkSCPart(parts[1], groups, true);
-				let ctx = mkSCPart(parts[2], groups, false);
-				res.errors = res.errors.concat(find[1]).concat(replace[1]).concat(ctx[1]);
-				res.changes.push({find: find[0], replace: replace[0], context: ctx[0]});
+				let target = mkSCPart(parts[0], groups, true);
+				if(target[0].length > 0) {
+					let replace = mkSCPart(parts[1], groups, true);
+					let ctx = mkSCPart(parts[2], groups, false);
+					res.errors = res.errors.concat(target[1]).concat(replace[1]).concat(ctx[1]);
+					res.changes.push({find: target[0], replace: replace[0], context: ctx[0]});
+				} else {
+					res.errors.push("Target cannot be left empty: " + rule);
+				}
 			}
 		} else {
 			res.errors.push("Invalid rule: " + rule);
@@ -250,16 +254,24 @@ function mkSCPart(str, groups, isNotCtx) {
 				nonce = nonce.slice(1);
 				let parts = nonce.split("}");
 				let group = mkGroup(parts[0]);
+				let elements = [];
+				for(element of group) {
+					if(groups[element]) {
+						elements = elements.concat(groups[element]);
+					} else {
+						elements.push(element);
+					}
+				}
 				if(parts[1].length == 0) {
 					if(isNotCtx) {
-						part.push({type: "group", elements: group, index: ""+nextidx});
+						part.push({type: "group", elements: elements, index: ""+nextidx});
 						nextidx += 1;
 					} else {
-						part.push({type: "group", elements: group});
+						part.push({type: "group", elements: elements});
 					}
 				} else {
 					if(isNotCtx) {
-						part.push({type: "group", elements: group, index: "_"+parts[1]});
+						part.push({type: "group", elements: elements, index: "_"+parts[1]});
 					} else {
 						errors.push("Indexes cannot be applied in the context: " + str)
 					}
