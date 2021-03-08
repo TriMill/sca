@@ -2,47 +2,6 @@ document.getElementById("apply").addEventListener("click", applySoundChanges);
 
 let debug = false;
 
-/*
- * V=aiuə
- * K=kgŋ
- * K/Kʷ/_u
- * {td}/{θð}/V_V
- */
-rules = {
-	groups: {
-		"V": ["a", "i", "u", "ə"],
-		"K": ["k", "g", "ŋ"],
-	},
-	changes: [
-		{
-			find: [
-				{type: "group", name: "K", index: "0"}
-			],
-			replace: [
-				{type: "group", name: "K", index: "0"},
-				{type: "char", name: "ʷ"}
-			],
-			context: [
-				"_",
-				{type: "char", name: "u"}
-			]
-		},
-		{
-			find: [
-				{type: "nonce", elements: ["t", "d"], index: "0"}
-			],
-			replace: [
-				{type: "nonce", elements: ["θ", "ð"], index: "0"}
-			],
-			context: [
-				{type: "group", name: "V"},
-				"_",
-				{type: "group", name: "V"}
-			]
-		}
-	]
-};
-
 function applySoundChanges(event) {
 	let rules = document.getElementById("rules").value.split("\n").map(a => a.replace(/\s/g,"")).filter(a => a.length > 0);
 	let input = document.getElementById("input").value.split(/\s/g).filter(a => a.length > 0);
@@ -63,8 +22,6 @@ function applySoundChanges(event) {
 	outputEl.value = applyRules(parsedrules, input).join("\n");
 }
 
-// function checkContext(word, idx, dir, ctx, groups)
-
 function applyRules(rules, input) {
 	let output = [];
 	for(word of input) {
@@ -75,7 +32,7 @@ function applyRules(rules, input) {
 			let ctx_before = change.context.slice(0,cursorpos).reverse();
 			let ctx_after = change.context.slice(cursorpos+1);
 			while(idx < word.length) {
-				let match = getFindMatch(word, change.find, idx, rules.groups);
+				let match = getFindMatch(word, change.find, idx);
 				if(match == null) {
 					// rule did not match
 					result += word[idx];
@@ -85,11 +42,11 @@ function applyRules(rules, input) {
 					let startIdx = idx-1;
 					let endIdx = match[0];
 					if(
-						(ctx_before.length == 0 || checkContext(word, startIdx, -1, ctx_before, rules.groups))
-						&& (ctx_after.length == 0 || checkContext(word, endIdx, 1, ctx_after, rules.groups))
+						(ctx_before.length == 0 || checkContext(word, startIdx, -1, ctx_before))
+						&& (ctx_after.length == 0 || checkContext(word, endIdx, 1, ctx_after))
 					){
 						// context matches
-							result += mkReplacement(change.replace, rules.groups, match[1]);
+							result += mkReplacement(change.replace, match[1]);
 							idx = endIdx;
 					} else {
 						// context does not match
@@ -108,7 +65,7 @@ function applyRules(rules, input) {
 	return output;
 }
 
-function getFindMatch(word, find, startIdx, groups) {
+function getFindMatch(word, find, startIdx) {
 	let idx = startIdx;
 	let groupHits = {};
 	for(segment of find) {
@@ -118,14 +75,9 @@ function getFindMatch(word, find, startIdx, groups) {
 			} else {
 				return null;
 			}
-		} else if(segment.type == "nonce" || segment.type == "group") {
-			let options = [];
+		} else if(segment.type == "group") {
 			let groupidx = segment.index;
-			if(segment.type == "nonce") {
-				options = segment.elements;
-			} else {
-				options = groups[segment.name];
-			}
+			let options = segment.elements;
 			let found = false;
 			for(i in options) {
 				if(word.slice(idx).startsWith(options[i])) {
@@ -143,19 +95,14 @@ function getFindMatch(word, find, startIdx, groups) {
 	return [idx, groupHits];
 }
 
-function mkReplacement(replace, groups, groupHits) {
+function mkReplacement(replace, groupHits) {
 	let res = "";
 	for(segment of replace) {
 		if(segment.type == "char") {
 			res += segment.name;
-		} else if(segment.type == "nonce" || segment.type == "group") {
-			let options = [];
+		} else if(segment.type == "group") {
 			let groupidx = segment.index;
-			if(segment.type == "nonce") {
-				options = segment.elements;
-			} else {
-				options = groups[segment.name];
-			}
+			let options = segment.elements;
 			if(groupHits[groupidx] < options.length) {
 				res += options[groupHits[groupidx]];
 			}
@@ -164,7 +111,7 @@ function mkReplacement(replace, groups, groupHits) {
 	return res;
 }
 
-function checkContext(word, idx, dir, ctx, groups) {
+function checkContext(word, idx, dir, ctx) {
 	for(segment of ctx) {
 		if(segment.type == "char") {
 			if(segment.name == word[idx]) {
@@ -172,13 +119,8 @@ function checkContext(word, idx, dir, ctx, groups) {
 			} else {
 				return false;
 			}
-		} else if(segment.type == "nonce" || segment.type == "group") {
-			let options = [];
-			if(segment.type == "nonce") {
-				options = segment.elements;
-			} else {
-				options = groups[segment.name];
-			}
+		} else if(segment.type == "group") {
+			options = segment.elements;
 			let found = false;
 			for(i in options) {
 				if(dir == 1) {
@@ -188,7 +130,7 @@ function checkContext(word, idx, dir, ctx, groups) {
 						break;
 					}
 				} else {
-					if(word.slice(0,idx).endsWith(options[i])) {
+					if(word.slice(0,idx+1).endsWith(options[i])) {
 						idx -= options[i].length;
 						found = true;
 						break;
@@ -216,10 +158,10 @@ const nextNonce = /{[^\/→={}\[\]_#;0123456789\(\)]+}(?:[0-9]+)?/;
 
 function parseRules(rules) {
 	let res = {
-		groups: {},
 		changes: [],
 		errors: []
 	};
+	let groups = {};
 	for(rule of rules) {
 		if(rule.startsWith(";")) {
 			// comment
@@ -232,7 +174,7 @@ function parseRules(rules) {
 			} else if(parts[0].length != 1) {
 				res.errors.push("Invalid group name: " + parts[0]);
 			} else {
-				res.groups[parts[0]] = mkGroup(parts[1]);
+				groups[parts[0]] = mkGroup(parts[1]);
 			}
 		} else if(rule.includes("/")) {
 			let parts = rule.split("/");
@@ -242,10 +184,9 @@ function parseRules(rules) {
 				if(parts.length == 2) {
 					parts[2] = "_";
 				}
-				let keys = Object.keys(res.groups);
-				let find = mkSCPart(parts[0], keys, true);
-				let replace = mkSCPart(parts[1], keys, true);
-				let ctx = mkSCPart(parts[2], keys, false);
+				let find = mkSCPart(parts[0], groups, true);
+				let replace = mkSCPart(parts[1], groups, true);
+				let ctx = mkSCPart(parts[2], groups, false);
 				res.errors = res.errors.concat(find[1]).concat(replace[1]).concat(ctx[1]);
 				res.changes.push({find: find[0], replace: replace[0], context: ctx[0]});
 			}
@@ -281,23 +222,23 @@ function mkSCPart(str, groups, isNotCtx) {
 				if(isNotCtx) {
 					let idx = seg.slice(1);
 					seg = seg[0];
-					if(!groups.includes(seg)) {
+					if(!Object.keys(groups).includes(seg)) {
 						errors.push("Index given for segment instead of group: " + str);
 					} else {
-						part.push({type: "group", name: seg, index: "_"+idx});
+						part.push({type: "group", elements: groups[seg], index: "_"+idx});
 					}
 				} else {
 					errors.push("Indexes cannot be applied in the context: " + str)
 				}
 			} else {
-				if(!groups.includes(seg)) {
+				if(!Object.keys(groups).includes(seg)) {
 					part.push({type: "char", name: seg});
 				} else {
 					if(isNotCtx) {
-						part.push({type: "group", name: seg, index: ""+nextidx});
+						part.push({type: "group", elements: groups[seg], index: ""+nextidx});
 						nextidx += 1;
 					} else {
-						part.push({type: "group", name: seg});
+						part.push({type: "group", elements: groups[seg]});
 					}
 				}
 			}
@@ -311,14 +252,14 @@ function mkSCPart(str, groups, isNotCtx) {
 				let group = mkGroup(parts[0]);
 				if(parts[1].length == 0) {
 					if(isNotCtx) {
-						part.push({type: "nonce", elements: group, index: ""+nextidx});
+						part.push({type: "group", elements: group, index: ""+nextidx});
 						nextidx += 1;
 					} else {
-						part.push({type: "nonce", elements: group});
+						part.push({type: "group", elements: group});
 					}
 				} else {
 					if(isNotCtx) {
-						part.push({type: "nonce", elements: group, index: "_"+parts[1]});
+						part.push({type: "group", elements: group, index: "_"+parts[1]});
 					} else {
 						errors.push("Indexes cannot be applied in the context: " + str)
 					}
