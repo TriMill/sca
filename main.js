@@ -8,8 +8,8 @@ window.lastPRules = undefined;
 function applySoundChanges(event) {
 	log("Starting");
 	let initTime = new Date();
-	let rules = document.getElementById("rules").value.split("\n").map(a => a.replace(/\s/g,"")).filter(a => a.length > 0);
-	let input = document.getElementById("input").value.split(/\s/g).filter(a => a.length > 0);
+	let rules = document.getElementById("rules").value.normalize().split("\n").map(a => a.replace(/\s/g,"")).filter(a => a.length > 0);
+	let input = document.getElementById("input").value.normalize().split(/\s/g).filter(a => a.length > 0);
 	let outputEl = document.getElementById("output");
 	let errorEl = document.getElementById("errors");
 	log(rules);
@@ -29,7 +29,7 @@ function applySoundChanges(event) {
 		}
 	}
 
-	outputEl.value = applyRules(pRules, input).join("\n");
+	outputEl.value = applyRules(pRules, input).join("\n").normalize();
 	window.lastPRules = pRules;
 	let diffTime = new Date() - initTime;
 	console.log("Rules applied. Total time: " + diffTime + " ms.");
