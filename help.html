@@ -31,28 +31,28 @@
 
 		<h2>Basic syntax</h2>
 		<p>
-			The basic syntax is very similar to that used in the Index Diachronica. An example sound change is
-			<code>k/kʷ/_u</code>, which reads as "replace all instance of <code>k</code> with <code>kʷ</code> whenever followed by <code>u</code>". The section before the first slash is what to find (the target), after the first slash is what to replace it with (the replacement), and (optionally) after the second slash is the environment to perform the replacement in (the context). Each rule must be listed on its own line in the "Rules" field.
+		The basic syntax is very similar to that used in the Index Diachronica. An example sound change is <code>k/kʷ/_u</code>, which reads as "replace all instance of <code>k</code> with <code>kʷ</code> whenever followed by <code>u</code>". The section before the first slash is what to find (the target), after the first slash is what to replace it with (the replacement), and (optionally) after the second slash is the environment to perform the replacement in (the context). Each rule must be listed on its own line in the "Rules" field.
 		</p>
 		<p>
-			If the replacement is left empty, the rule will delete anything matching it. If the context is left empty or ommited the rule will apply to all matches of the target. The target cannot be left empty.
+		If the replacement is left empty, the rule will delete anything matching it. If the context is left empty or ommited the rule will apply to all matches of the target. The target cannot be left empty.
 		</p>
 		<p>
-			Any line in the "Rules" field beginning with a semicolon (;) will be ignored, which can be used to add comments.
+		Any line in the "Rules" field beginning with a semicolon (;) will be ignored, which can be used to add comments.
 		</p>
+
 		<h2>Reserved characters</h2>
 		<p>
-			The following characters either perform a special function or may in the future without warning. Avoid these unless you're using them for their designated purpose.
-			<div class="code">/ → = { } [ ] ( ) _ # , . ; 0 1 2 3 4 5 6 7 8 9 ? + *</div><br />
-			Whitespace (besides newlines) in the rules list is ignored.
+		The following characters either perform a special function or may in the future without warning. Avoid these unless you're using them for their designated purpose.
+		<div class="code">/ → = { } [ ] ( ) _ # , . ; 0 1 2 3 4 5 6 7 8 9 ? + *</div><br />
+		Whitespace (besides newlines) in the rules list is ignored.
 		</p>
 
 		<h2>Categories</h2>
 		<p>
-			Say you have the following sound changes:
-			<div class="code">k/kʷ/_u<br />g/gʷ/_u<br />ŋ/ŋʷ/_u</div><br />
-			These all follow the same format, so it would be nice if you could write them as one rule. To do this, define the category
-			<code>K=kgŋ</code>. You can then use this category to rewrite the three rules above as <code>K/Kʷ/_u</code>.
+		Say you have the following sound changes:
+		<div class="code">k/kʷ/_u<br />g/gʷ/_u<br />ŋ/ŋʷ/_u</div><br />
+		These all follow the same format, so it would be nice if you could write them as one rule. To do this, define the category
+		<code>K=kgŋ</code>. You can then use this category to rewrite the three rules above as <code>K/Kʷ/_u</code>.
 		</p>
 		<p>
 		On the left-hand side of the equals sign is the category's name, which must be a single character. On the right is a list of segments to include. If no commas are used, each character will be counted as its own segment, for example <code>V=aeiou</code> will create the class V containing a, e, i, o, and u. If you require multiple characters per segment, use commas to separate them. For example, <code>A=tʃ,dʒ</code> creates a category containing tʃ and dʒ. Categories should be written in the "Rules" field above your sound changes, each on their own line.
@@ -62,22 +62,34 @@
 		<div class="code">P=ptk<br />B=bdg<br />{Pfsʃ}/{Bvzʒ}/V_V</div><br />
 		is equivalent to <code>{ptkfsʃ}/{bdgvzʒ}/V_V</code>. Named categories cannot be nested inside other named categories.
 		</p>
-		
 		<p>
 		If multiple categories are used in the target or the replacement they will automatically be paired up based on the order they appear in. For example, in <code>{td}{iu}/{cɟ}{eo}</code> {td} is paired with {cɟ} and {iu} is paired with {eo}. Sometimes this does not give the desired results. In <code>{td}{iu}/ɟ{eo}</code>, {td} instead gets paired with {eo} and {iu} is left unpaired. To fix this, matching numbers can be inserted after the categories that you want to be paired. The previous example would then become <code>{td}{iu}1/ɟ{eo}1</code>. This works for both categories and nonce categories.
 		</p>
 
 		<h2>Word boundaries</h2>
 		<p>
-			Use the # symbol (called a hash, pound sign, or octothorpe) to indicate a word boundary. This can be used before the _ (where it will search for the beginning of a word) or after the _ (where it will search for the end). Any characters before a beginning # or after an ending # will be ignored.
+		Use the # symbol (called a hash, pound sign, or octothorpe) to indicate a word boundary. This can be used before the _ (where it will search for the beginning of a word) or after the _ (where it will search for the end). Any characters before a beginning # or after an ending # will be ignored.
+		</p>
+
+		<h2>Optional segments</h2>
+		<p>
+		By placing a question mark (?) after a segment (a single character, collection, or word boundary) will mark it as optional. If this segment cannot be matched it will be skipped. Optional segments are greedy, meaning they will match whenever they can, and if the match fails later they will not backtrack.
+		</p>
+
+		<h2>Unicode wackyness</h2>
+		<p>
+		This application treats each Unicode character as a single character. While this may seem logical, you may encounter some edge-cases with certain characters using diacritics. As an example, the character <code>é</code> and the character <code>é</code> look identical, but the first is a single character <code>U+00E9</code> and the second is two: <code>U+0065 U+0301</code>. Even though these look identical, TriSCA will treat them as different.
+		</p>
+		<p>
+		An example where this might be an issue is <code>{iī}/{eē}/_#</code>. Since the ī and ē in this example are composed of two characters, the categories get parsed into <code>[i, i, ˉ]</code> and <code>[e, e, ˉ]</code>, which is clearly not what is intended. The simplest way to solve this is to avoid combining diacritics entirely and use the charactrers ī and ē, but if you must use them you can comma-separate the groups: <code>{i,ī}/{e,ē}/_#</code>.A similar issue occurs with the ? symbol, which if placed after a character with a combining diacritic will only apply to the diacritic.
 		</p>
 
 		<h1>Debugging, bug reports, and contact</h1>
 		<p>
-			If your sound changes aren't working as expected, open the browser console (Ctrl+Shift+K on Firefox, Ctrl+Shift+J on Chrome), type <code>debug=true</code>, and press Enter. Click "Apply" again to view a list of all changes that were applied.
+		If your sound changes aren't working as expected, open the browser console (Ctrl+Shift+K on Firefox, Ctrl+Shift+J on Chrome), type <code>logChanges=true</code>, and press Enter. Click "Apply" again to view a list of all changes that were applied. For more complete debug information, type <code>debug=true</code> and press Enter.
 		</p>
 		<p>
-			If you find a bug, please create an issue at <a href="https://github.com/trimill/sca/issues/">this repository's issues page</a>. If applicable, make sure to include example rules and input, expected output, actual output, and the debug output as described above.
+		If you find a bug, please create an issue at <a href="https://github.com/trimill/sca/issues/">this repository's issues page</a>. If applicable, make sure to include example rules and input, expected output, actual output, and the debug output as described above.
 		</p>
 		<p>
 			For questions or help, feel free to DM <a href="https://discordapp.com/users/297903701916385290">TriMill#6898</a> on Discord.

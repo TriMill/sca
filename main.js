@@ -1,25 +1,38 @@
 document.getElementById("apply").addEventListener("click", applySoundChanges);
 
-let debug = false;
+window.debug = false;
+window.logChanges = false;
+window.lastRules = undefined;
+window.lastPRules = undefined;
 
 function applySoundChanges(event) {
+	log("Starting");
+	let initTime = new Date();
 	let rules = document.getElementById("rules").value.split("\n").map(a => a.replace(/\s/g,"")).filter(a => a.length > 0);
 	let input = document.getElementById("input").value.split(/\s/g).filter(a => a.length > 0);
 	let outputEl = document.getElementById("output");
 	let errorEl = document.getElementById("errors");
 	log(rules);
 	log(input);
-
-	let parsedrules = parseRules(rules);
-	log(parsedrules);
-
-	if(parsedrules.errors.length > 0) {
-		errorEl.innerHTML = "<div>Errors found during parsing rules:</div>" + parsedrules.errors.map(a => escapeHTML(a)).join("<br />");
-	} else {
-		errorEl.innerHTML = "";
+	
+	let pRules = window.lastPRules;
+	if(lastRules == undefined || rules.length != lastRules.length || !rules.every((val, index) => val === lastRules[index])) {
+		window.lastRules = rules;
+		pRules = parseRules(rules);
+		log(pRules);
+		log("New rules parsed");
+		if(pRules.errors.length > 0) {
+			errorEl.innerHTML = "<div>Errors found during parsing rules:</div>" + pRules.errors.map(a => escapeHTML(a)).join("<br />");
+			log("Errors found while parsing rules");
+		} else {
+			errorEl.innerHTML = "";
+		}
 	}
 
-	outputEl.value = applyRules(parsedrules, input).join("\n");
+	outputEl.value = applyRules(pRules, input).join("\n");
+	window.lastPRules = pRules;
+	let diffTime = new Date() - initTime;
+	console.log("Rules applied. Total time: " + diffTime + " ms.");
 }
 
 function applyRules(rules, input) {
@@ -46,8 +59,8 @@ function applyRules(rules, input) {
 						&& (ctx_after.length == 0 || checkContext(word, endIdx, 1, ctx_after))
 					){
 						// context matches
-							result += mkReplacement(change.replace, match[1]);
-							idx = endIdx;
+						result += mkReplacement(change.replace, match[1]);
+						idx = endIdx;
 					} else {
 						// context does not match
 						result += word[idx];
@@ -56,7 +69,7 @@ function applyRules(rules, input) {
 				}
 			}
 			if(word != result) {
-				log(word + " --> " + result);
+				logChange(word + " --> " + result);
 				word = result;
 			}
 		}
@@ -72,7 +85,7 @@ function getFindMatch(word, find, startIdx) {
 		if(segment.type == "char") {
 			if(segment.name == word[idx]) {
 				idx += 1;
-			} else {
+			} else if(!segment.optional) {
 				return null;
 			}
 		} else if(segment.type == "group") {
@@ -87,7 +100,7 @@ function getFindMatch(word, find, startIdx) {
 					break;
 				}
 			}
-			if(!found) {
+			if(!found && !segment.optional) {
 				return null;
 			}
 		}
@@ -116,7 +129,7 @@ function checkContext(word, idx, dir, ctx) {
 		if(segment.type == "char") {
 			if(segment.name == word[idx]) {
 				idx += dir;
-			} else {
+			} else if(!segment.optional) {
 				return false;
 			}
 		} else if(segment.type == "group") {
@@ -137,7 +150,7 @@ function checkContext(word, idx, dir, ctx) {
 					}
 				}
 			}
-			if(!found) {
+			if(!found && !segment.optional) {
 				return false;
 			}
 		} else if(segment.type == "boundary") {
@@ -145,7 +158,7 @@ function checkContext(word, idx, dir, ctx) {
 				return true;
 			} else if(dir == -1 && idx < 0) {
 				return true;
-			} else {
+			} else if(!segment.optional) {
 				return false;
 			}
 		}
@@ -153,8 +166,8 @@ function checkContext(word, idx, dir, ctx) {
 	return true;
 }
 
-const nextSegment = /[^\/→={}\[\]_#,;0123456789\(\)](?:[0-9]+)?/;
-const nextNonce = /{[^\/→={}\[\]_#;0123456789\(\)]+}(?:[0-9]+)?/;
+const nextSegment = /[^\/→={}\[\]_#,;?0123456789\(\)](?:[0-9]+)?/;
+const nextNonce = /{[^\/→={}\[\]_#;?0123456789\(\)]+}(?:[0-9]+)?/;
 
 function parseRules(rules) {
 	let res = {
@@ -186,10 +199,21 @@ function parseRules(rules) {
 				}
 				let target = mkSCPart(parts[0], groups, true);
 				if(target[0].length > 0) {
-					let replace = mkSCPart(parts[1], groups, true);
-					let ctx = mkSCPart(parts[2], groups, false);
-					res.errors = res.errors.concat(target[1]).concat(replace[1]).concat(ctx[1]);
-					res.changes.push({find: target[0], replace: replace[0], context: ctx[0]});
+					let foundRequired = false;
+					for(part of target[0]) {
+						if(!part.optional) {
+							foundRequired = true;
+							break;
+						}
+					}
+					if(foundRequired) {
+						let replace = mkSCPart(parts[1], groups, true);
+						let ctx = mkSCPart(parts[2], groups, false);
+						res.errors = res.errors.concat(target[1]).concat(replace[1]).concat(ctx[1]);
+						res.changes.push({find: target[0], replace: replace[0], context: ctx[0]});
+					} else {
+						res.errors.push("Target must have at least one required segment: " + rule);
+					}
 				} else {
 					res.errors.push("Target cannot be left empty: " + rule);
 				}
@@ -214,6 +238,15 @@ function mkSCPart(str, groups, isNotCtx) {
 				continue;
 			} else if(remainder[0] == "#") {
 				part.push({type:"boundary"});
+				remainder = remainder.slice(1);
+				continue;
+			}
+		}
+		if(remainder[0] == "?") {
+			if(part.length == 0) {
+				errors.push("Question mark must follow another segent: " + str);
+			} else {
+				part[part.length-1].optional = true;
 				remainder = remainder.slice(1);
 				continue;
 			}
@@ -287,9 +320,9 @@ function mkSCPart(str, groups, isNotCtx) {
 
 function mkGroup(str) {
 	if(str.includes(",")) {
-		return str.split(",");
+		return str.split(",").filter(s => s.length > 0);
 	} else {
-		return str.split("");
+		return str.split("").filter(s => s.length > 0);
 	}
 }
 
@@ -303,4 +336,8 @@ function escapeRegExp(str) {
 
 function log(s) {
 	if(debug) console.log(s);
+}
+
+function logChange(before, after) {
+	if(logChanges) console.log(before + " --> " + after);
 }
