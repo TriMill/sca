@@ -93,6 +93,12 @@
 		By placing a question mark (?) after a segment (a single character, collection, or word boundary) will mark it as optional. If this segment cannot be matched it will be skipped. Optional segments are greedy, meaning they will match whenever they can, and if the match fails later they will not backtrack.
 		</p>
 		</div>
+		<div class="section">
+		<h2>Wildcard character</h2>
+		<p>
+		The asterisk (*) will match any single character. Note that this cannot be made optional (as it will match as long as the word has not ended) or matched with an asterisk in the replacement.
+		</p>
+		</div>
 
 		<div class="section">
 		<h2>Unicode wackyness</h2>

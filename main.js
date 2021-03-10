@@ -154,6 +154,8 @@ function checkTarget(word, find, startIdx) {
 			if(!found && !segment.optional) {
 				return null;
 			}
+		} else if(segment.type == "wildcard") {
+			idx += 1;
 		}
 	}
 	return [idx, groupHits];
@@ -219,6 +221,11 @@ function checkContext(word, idx, dir, ctx) {
 			} else if(!segment.optional) {
 				return false;
 			}
+		} else if(segment.type == "wildcard") {
+			if(word[idx] == undefined) {
+				return false
+			}
+			idx += dir;
 		}
 	}
 	return true;
@@ -315,8 +322,9 @@ function mkChangePart(str, groups, isCtx) {
 				continue;
 			}
 		}
-		// ? operator: mark the last segment as optional
+		// single-character operators
 		if(remainder[0] == "?") {
+			// ? operator: mark the last segment as optional
 			if(part.length == 0) {
 				errors.push("Question mark must follow another segent: " + str);
 			} else {
@@ -324,7 +332,12 @@ function mkChangePart(str, groups, isCtx) {
 				remainder = remainder.slice(1);
 				continue;
 			}
-		}
+		} else if(remainder[0] == "*") {
+			// * operator: match any character
+			part.push({type: "wildcard"});
+			remainder = remainder.slice(1);
+			continue;
+		} 
 		// Try to match either a character or a group
 		let segmatch = remainder.match(nextSegment);
 		if(segmatch != null && remainder.indexOf(segmatch[0]) == 0) {

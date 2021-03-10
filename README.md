@@ -9,7 +9,7 @@ Visit https://trimill.github.io/sca/ to use or visit https://trimill.github.io/s
 * Better debugging tools
 * Allow rules with context but no target
 * Intermediate results
-* Wildcard rules (accepts any character)
+* Ellipsis (accepts an unlimited number of characters)
 
 ## Potential future additions
 * Stress/suprasegmental marking for input words and sound changes
