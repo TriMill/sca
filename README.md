@@ -2,10 +2,16 @@
 
 Visit https://trimill.github.io/sca/ to use or visit https://trimill.github.io/sca/help.html for help.
 
-## Potential future additions
+## Planned future additions
 * Accept → as a replacement for the first /
-* Stress marking for input words, stress-based sound changes
 * Word boundaries in categories
 * Additional slash after context for rule exceptions
-* Output formats (before → after)
 * Better debugging tools
+* Allow rules with context but no target
+* Intermediate results
+* Wildcard rules (accepts any character)
+
+## Potential future additions
+* Stress/suprasegmental marking for input words and sound changes
+* IPA entry
+* Persistent rules (apply after every step)

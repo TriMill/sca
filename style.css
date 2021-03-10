@@ -47,9 +47,9 @@ html, body {
 .main > div {
 	display: flex;
 	flex-direction: column;
-	margin: 20px;
+	margin: 15px;
 	margin-bottom: 0px;
-	padding: 10px;
+	padding: 5px;
 }
 
 .errors {
@@ -78,7 +78,7 @@ html, body {
 
 textarea {
 	font-family: 'DejaVu Sans Mono', monospace;
-	font-size: 11pt;
+	font-size: 10pt;
 	border: 1px solid #888;
 	border-radius: 0px;
 }

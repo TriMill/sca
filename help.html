@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>TriSCA Help 0.1</title>
+    <title>TriSCA Help</title>
     <meta name="description" content="MCTools" />
     <meta name="author" content="TriMill" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,12 +14,13 @@
 	</div>
 	<div class="helpmain">
 
+		<div class="section">
 		<h1>SCA Documentation</h1>
-
 		<p>
 		TriSCA (Tri's Sound Change Applier, /ˈtɹaɪ.skə/ or /tɹaɪ ɛs si eɪ/) allows you to automatically apply a set of sound changes to a list of words. It is inspired by <a href="http://www.zompist.com/sca2.html">SCA2 by Mark Rosenfelder</a>, but features a number of changes. All code is open-source under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPLv3</a> license and is available <a href="https://github.com/trimill/sca/">here</a>.
 		</p>
 
+		<div class="section">
 		<h2>UI</h2>
 		<div><b>Rules</b> - the list of sound changes that will be applied. The format is detailed below.</div>
 		<div><b>Input</b> - put your list of words here, separated by spaces or newlines.</div>
@@ -27,8 +28,10 @@
 		<div><b>Apply</b> - apply the sound changes</div>
 		<div><b>Help</b> - open this help page (in a new tab)</div>
 		<div><b>IPA Chart</b> - open Wikipedia's IPA chart (in a new tab)</div>
+		</div>
 
 
+		<div class="section">
 		<h2>Basic syntax</h2>
 		<p>
 		The basic syntax is very similar to that used in the Index Diachronica. An example sound change is <code>k/kʷ/_u</code>, which reads as "replace all instance of <code>k</code> with <code>kʷ</code> whenever followed by <code>u</code>". The section before the first slash is what to find (the target), after the first slash is what to replace it with (the replacement), and (optionally) after the second slash is the environment to perform the replacement in (the context). Each rule must be listed on its own line in the "Rules" field.
@@ -39,18 +42,26 @@
 		<p>
 		Any line in the "Rules" field beginning with a semicolon (;) will be ignored, which can be used to add comments.
 		</p>
+		</div>
 
+		<div class="section">
 		<h2>Reserved characters</h2>
 		<p>
 		The following characters either perform a special function or may in the future without warning. Avoid these unless you're using them for their designated purpose.
-		<div class="code">/ → = { } [ ] ( ) _ # , . ; 0 1 2 3 4 5 6 7 8 9 ? + *</div><br />
+		</p>
+		<div class="code">/ → = { } [ ] ( ) _ # , . ; 0 1 2 3 4 5 6 7 8 9 ? + *</div>
+		<p>
 		Whitespace (besides newlines) in the rules list is ignored.
 		</p>
+		</div>
 
+		<div class="section">
 		<h2>Categories</h2>
 		<p>
 		Say you have the following sound changes:
-		<div class="code">k/kʷ/_u<br />g/gʷ/_u<br />ŋ/ŋʷ/_u</div><br />
+		</p>
+		<div class="code">k/kʷ/_u<br />g/gʷ/_u<br />ŋ/ŋʷ/_u</div>
+		<p>
 		These all follow the same format, so it would be nice if you could write them as one rule. To do this, define the category
 		<code>K=kgŋ</code>. You can then use this category to rewrite the three rules above as <code>K/Kʷ/_u</code>.
 		</p>
@@ -59,34 +70,45 @@
 		</p>
 		<p>
 		If you have a category you only need to use once, instead of defining it you can create a nonce category, a list of segments enclosd in {curly braces}. For example, the above rule could be rewritten as <code>{kgŋ}/{kgŋ}ʷ/_u</code>. These can also be comma-seperated, for example <code>{td}/{tʃ,dʒ}/_i</code> will replace t with tʃ and d with dʒ before i. Named categories can be included in nonce categories, resulting in the named category's contents being "extracted" into the nonce category. For example,
-		<div class="code">P=ptk<br />B=bdg<br />{Pfsʃ}/{Bvzʒ}/V_V</div><br />
+		</p>
+		<div class="code">P=ptk<br />B=bdg<br />{Pfsʃ}/{Bvzʒ}/V_V</div>
+		<p>
 		is equivalent to <code>{ptkfsʃ}/{bdgvzʒ}/V_V</code>. Named categories cannot be nested inside other named categories.
 		</p>
 		<p>
 		If multiple categories are used in the target or the replacement they will automatically be paired up based on the order they appear in. For example, in <code>{td}{iu}/{cɟ}{eo}</code> {td} is paired with {cɟ} and {iu} is paired with {eo}. Sometimes this does not give the desired results. In <code>{td}{iu}/ɟ{eo}</code>, {td} instead gets paired with {eo} and {iu} is left unpaired. To fix this, matching numbers can be inserted after the categories that you want to be paired. The previous example would then become <code>{td}{iu}1/ɟ{eo}1</code>. This works for both categories and nonce categories.
 		</p>
+		</div>
 
+		<div class="section">
 		<h2>Word boundaries</h2>
 		<p>
 		Use the # symbol (called a hash, pound sign, or octothorpe) to indicate a word boundary. This can be used before the _ (where it will search for the beginning of a word) or after the _ (where it will search for the end). Any characters before a beginning # or after an ending # will be ignored.
 		</p>
+		</div>
 
+		<div class="section">
 		<h2>Optional segments</h2>
 		<p>
 		By placing a question mark (?) after a segment (a single character, collection, or word boundary) will mark it as optional. If this segment cannot be matched it will be skipped. Optional segments are greedy, meaning they will match whenever they can, and if the match fails later they will not backtrack.
 		</p>
+		</div>
 
+		<div class="section">
 		<h2>Unicode wackyness</h2>
 		<p>
-		This application treats each Unicode character as a single character. While this may seem logical, you may encounter some edge-cases with certain characters using diacritics. As an example, the character <code>é</code> and the character <code>é</code> look identical, but the first is a single character <code>U+00E9</code> and the second is two: <code>U+0065 U+0301</code>. Even though these look identical, TriSCA will treat them as different.
+		If the "Normalize input and output" box is checked, all input text is <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize">normalized</a>, meaning that whenever possible combining diacritics are merged with the characters they modify to create single characters. For example, <code>é</code> is made up of two characters (the letter 'e' and a combining accent), so it gets converted to <code>é</code>, a single character representing 'e' with an accent. You will usually want to keep this checked, but in some cases (eg. specifying tone or stress) you may want to uncheck this.
 		</p>
 		<p>
-		An example where this might be an issue is <code>{iī}/{eē}/_#</code>. Since the ī and ē in this example are composed of two characters, the categories get parsed into <code>[i, i, ˉ]</code> and <code>[e, e, ˉ]</code>, which is clearly not what is intended. The simplest way to solve this is to avoid combining diacritics entirely and use the charactrers ī and ē, but if you must use them you can comma-separate the groups: <code>{i,ī}/{e,ē}/_#</code>.A similar issue occurs with the ? symbol, which if placed after a character with a combining diacritic will only apply to the diacritic.
+		This fixes most of the problems, but not all combinations of diacrics and characters gets its own codepoint. An example where this might be an issue is <code>{ɛɨ}/{ɛ̃ɨ̃}/_n</code>. Since the ɛ̃ and ɨ̃ in this example are composed of two characters, the second category gets parsed into <code>[ɛ, ˜, ɨ, ˜]</code>, which is clearly not what is intended. A similar problem occurs with the <code>?</code> operator, since it will only apply to the character immediately preceding it. In general avoid using combining diacritics, but if you must use them you can comma-separate your collections (<code>{ɛ,ɨ}/{ɛ̃,ɨ̃}/_n</code>).
 		</p>
+		</div>
+		</div>
 
+		<div class="section">
 		<h1>Debugging, bug reports, and contact</h1>
 		<p>
-		If your sound changes aren't working as expected, open the browser console (Ctrl+Shift+K on Firefox, Ctrl+Shift+J on Chrome), type <code>logChanges=true</code>, and press Enter. Click "Apply" again to view a list of all changes that were applied. For more complete debug information, type <code>debug=true</code> and press Enter.
+		If your sound changes aren't working as expected, check "Log all changes applied to the console", open the browser console (Ctrl+Shift+K on Firefox, Ctrl+Shift+J on Chrome) and click "Apply" again to view a list of all changes that were applied. For more complete debug information, check "Print debug information to the console".
 		</p>
 		<p>
 		If you find a bug, please create an issue at <a href="https://github.com/trimill/sca/issues/">this repository's issues page</a>. If applicable, make sure to include example rules and input, expected output, actual output, and the debug output as described above.
@@ -94,6 +116,7 @@
 		<p>
 			For questions or help, feel free to DM <a href="https://discordapp.com/users/297903701916385290">TriMill#6898</a> on Discord.
 		</p>
+		</div>
 	</div>
   </body>
 </html>

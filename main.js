@@ -6,12 +6,23 @@ window.lastRules = undefined;
 window.lastPRules = undefined;
 
 function applySoundChanges(event) {
+	window.debug = document.getElementById("enable-debug").checked;
+	window.logChanges = document.getElementById("log-changes").checked;
 	log("Starting");
 	let initTime = new Date();
-	let rules = document.getElementById("rules").value.split("\n").map(a => a.replace(/\s/g,"")).filter(a => a.length > 0);
-	let input = document.getElementById("input").value.split(/\s/g).filter(a => a.length > 0);
+	let doNormalize = document.getElementById("normalize").checked;
+	let outputStyle = document.getElementById("output-style").checked;
+	let rules = document.getElementById("rules").value;
+	let input = document.getElementById("input").value;
+	if(doNormalize) {
+		rules = rules.normalize()
+		input = input.normalize()
+	}
+	rules = rules.split("\n").map(a => a.replace(/\s/g,"")).filter(a => a.length > 0);
+	input = input.split(/\s/g).filter(a => a.length > 0);
 	let outputEl = document.getElementById("output");
 	let errorEl = document.getElementById("errors");
+
 	log(rules);
 	log(input);
 	
@@ -29,7 +40,17 @@ function applySoundChanges(event) {
 		}
 	}
 
-	outputEl.value = applyRules(pRules, input).join("\n");
+	let outputResults = applyRules(pRules, input);
+	let outputText;
+	if(outputStyle) {
+		outputText = outputResults.map((el, idx) => input[idx] + " → " + el).join("\n");
+	} else {
+		outputText = outputResults.join("\n");
+	}
+	if(doNormalize) {
+		outputText = outputText.normalize();
+	}
+	outputEl.value = outputText;
 	window.lastPRules = pRules;
 	let diffTime = new Date() - initTime;
 	console.log("Rules applied. Total time: " + diffTime + " ms.");
@@ -69,7 +90,7 @@ function applyRules(rules, input) {
 				}
 			}
 			if(word != result) {
-				logChange(word + " --> " + result);
+				logChange(word, result);
 				word = result;
 			}
 		}
