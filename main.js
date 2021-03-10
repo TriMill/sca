@@ -1,45 +1,66 @@
-document.getElementById("apply").addEventListener("click", applySoundChanges);
+document.getElementById("apply").addEventListener("click", applyClicked);
 
+// Enables debug mode
 window.debug = false;
+// Logs all sound changes
 window.logChanges = false;
+// Last rules (raw and parsed), used to skip rule parsing if rules weren't changed
 window.lastRules = undefined;
 window.lastPRules = undefined;
 
-function applySoundChanges(event) {
+/*
+ * This is called whenever the "Apply" button is pressed. It gathers the contents of each input element, parses the 
+ * rules, and then applies the rules to the input words to generate the output.
+ */
+function applyClicked(event) {
+	// Get data from each input element
 	window.debug = document.getElementById("enable-debug").checked;
 	window.logChanges = document.getElementById("log-changes").checked;
-	log("Starting");
-	let initTime = new Date();
 	let doNormalize = document.getElementById("normalize").checked;
 	let outputStyle = document.getElementById("output-style").checked;
 	let rules = document.getElementById("rules").value;
 	let input = document.getElementById("input").value;
+	let outputEl = document.getElementById("output");
+	let errorEl = document.getElementById("errors");
+	let initTime = new Date();
+	log("Starting");
+
+	// If normalize is checked, normalize rules and input
 	if(doNormalize) {
 		rules = rules.normalize()
 		input = input.normalize()
 	}
+	// Rules: split on newlines and remove spaces
 	rules = rules.split("\n").map(a => a.replace(/\s/g,"")).filter(a => a.length > 0);
+	// Input: split on all spaces
 	input = input.split(/\s/g).filter(a => a.length > 0);
-	let outputEl = document.getElementById("output");
-	let errorEl = document.getElementById("errors");
 
 	log(rules);
 	log(input);
 	
 	let pRules = window.lastPRules;
-	if(lastRules == undefined || rules.length != lastRules.length || !rules.every((val, index) => val === lastRules[index])) {
+	if(
+		lastRules == undefined // first run
+		|| rules.length != lastRules.length  // raw rule lists don't match in length
+		|| !rules.every((val, index) => val === lastRules[index]) // raw rule lists aren't equal
+	) {
+		// Rules need to be parsed again
 		window.lastRules = rules;
 		pRules = parseRules(rules);
 		log(pRules);
 		log("New rules parsed");
+
+		// Show errors if any occured
 		if(pRules.errors.length > 0) {
-			errorEl.innerHTML = "<div>Errors found during parsing rules:</div>" + pRules.errors.map(a => escapeHTML(a)).join("<br />");
+			errorEl.innerHTML = "<div>Errors found during parsing rules:</div>" 
+				+ pRules.errors.map(a => escapeHTML(a)).join("<br />");
 			log("Errors found while parsing rules");
 		} else {
 			errorEl.innerHTML = "";
 		}
 	}
 
+	// Apply the rules to the input
 	let outputResults = applyRules(pRules, input);
 	let outputText;
 	if(outputStyle) {
@@ -50,12 +71,17 @@ function applySoundChanges(event) {
 	if(doNormalize) {
 		outputText = outputText.normalize();
 	}
+
 	outputEl.value = outputText;
 	window.lastPRules = pRules;
 	let diffTime = new Date() - initTime;
 	console.log("Rules applied. Total time: " + diffTime + " ms.");
 }
 
+/*
+ * Given a set of parsed rules and some input, apply the rules to the input. Loops through each word, then applies
+ * each rule to that word.
+ */
 function applyRules(rules, input) {
 	let output = [];
 	for(word of input) {
@@ -65,8 +91,9 @@ function applyRules(rules, input) {
 			let cursorpos = change.context.indexOf("_");
 			let ctx_before = change.context.slice(0,cursorpos).reverse();
 			let ctx_after = change.context.slice(cursorpos+1);
+			// Keep going until the end of the word is reached
 			while(idx < word.length) {
-				let match = getFindMatch(word, change.find, idx);
+				let match = checkTarget(word, change.find, idx);
 				if(match == null) {
 					// rule did not match
 					result += word[idx];
@@ -99,7 +126,10 @@ function applyRules(rules, input) {
 	return output;
 }
 
-function getFindMatch(word, find, startIdx) {
+/*
+ * Check if the target matches the word at the specified index.
+ */
+function checkTarget(word, find, startIdx) {
 	let idx = startIdx;
 	let groupHits = {};
 	for(segment of find) {
@@ -129,6 +159,9 @@ function getFindMatch(word, find, startIdx) {
 	return [idx, groupHits];
 }
 
+/*
+ * Create the replacement string, depends on the groups that were matched in the target.
+ */
 function mkReplacement(replace, groupHits) {
 	let res = "";
 	for(segment of replace) {
@@ -145,6 +178,10 @@ function mkReplacement(replace, groupHits) {
 	return res;
 }
 
+/*
+ * Check if one half of the context matches. This can be called twice per target match, once for the context before
+ * the _, once for the context after.
+ */
 function checkContext(word, idx, dir, ctx) {
 	for(segment of ctx) {
 		if(segment.type == "char") {
@@ -187,9 +224,13 @@ function checkContext(word, idx, dir, ctx) {
 	return true;
 }
 
+// Regexes to detect the next groups
 const nextSegment = /[^\/→={}\[\]_#,;?0123456789\(\)](?:[0-9]+)?/;
 const nextNonce = /{[^\/→={}\[\]_#;?0123456789\(\)]+}(?:[0-9]+)?/;
 
+/*
+ * Parse the list of rules into a JS object.
+ */
 function parseRules(rules) {
 	let res = {
 		changes: [],
@@ -211,16 +252,22 @@ function parseRules(rules) {
 				groups[parts[0]] = mkGroup(parts[1]);
 			}
 		} else if(rule.includes("/")) {
+			// sound change
 			let parts = rule.split("/");
 			if(parts.length < 2 || parts.length > 3) {
+				// rule must have two or three parts
 				res.errors.push("Invalid sound change declaration: " + rule);
 			} else {
 				if(parts.length == 2) {
+					// no context given, rule applies everywhere
 					parts[2] = "_";
 				}
-				let target = mkSCPart(parts[0], groups, true);
+
+				let target = mkChangePart(parts[0], groups, false);
+				// target must not be empty
 				if(target[0].length > 0) {
 					let foundRequired = false;
+					// target must have at least one required segment
 					for(part of target[0]) {
 						if(!part.optional) {
 							foundRequired = true;
@@ -228,8 +275,8 @@ function parseRules(rules) {
 						}
 					}
 					if(foundRequired) {
-						let replace = mkSCPart(parts[1], groups, true);
-						let ctx = mkSCPart(parts[2], groups, false);
+						let replace = mkChangePart(parts[1], groups, false);
+						let ctx = mkChangePart(parts[2], groups, true);
 						res.errors = res.errors.concat(target[1]).concat(replace[1]).concat(ctx[1]);
 						res.changes.push({find: target[0], replace: replace[0], context: ctx[0]});
 					} else {
@@ -246,13 +293,18 @@ function parseRules(rules) {
 	return res;
 }
 
-function mkSCPart(str, groups, isNotCtx) {
+/*
+ * Make one part of the sound change, either the target, replacement, or context. 
+ * isCtx is only set true for the context.
+ */
+function mkChangePart(str, groups, isCtx) {
 	let remainder = str;
 	let nextidx = 0;
 	let part = [];
 	let errors = [];
 	while(remainder.length > 0) {
-		if(!isNotCtx) {
+		// Special elements only in the context
+		if(isCtx) {
 			if(remainder[0] == "_") {
 				part.push("_");
 				remainder = remainder.slice(1);
@@ -263,6 +315,7 @@ function mkSCPart(str, groups, isNotCtx) {
 				continue;
 			}
 		}
+		// ? operator: mark the last segment as optional
 		if(remainder[0] == "?") {
 			if(part.length == 0) {
 				errors.push("Question mark must follow another segent: " + str);
@@ -272,16 +325,18 @@ function mkSCPart(str, groups, isNotCtx) {
 				continue;
 			}
 		}
+		// Try to match either a character or a group
 		let segmatch = remainder.match(nextSegment);
 		if(segmatch != null && remainder.indexOf(segmatch[0]) == 0) {
 			let seg = segmatch[0];
 			remainder = remainder.slice(seg.length);
 			if(seg.length > 1) {
-				if(isNotCtx) {
+				// Segment has an index
+				if(!isCtx) {
 					let idx = seg.slice(1);
 					seg = seg[0];
 					if(!Object.keys(groups).includes(seg)) {
-						errors.push("Index given for segment instead of group: " + str);
+						errors.push("Index given for character instead of group: " + str);
 					} else {
 						part.push({type: "group", elements: groups[seg], index: "_"+idx});
 					}
@@ -289,10 +344,11 @@ function mkSCPart(str, groups, isNotCtx) {
 					errors.push("Indexes cannot be applied in the context: " + str)
 				}
 			} else {
+				// Segment does not have an index
 				if(!Object.keys(groups).includes(seg)) {
 					part.push({type: "char", name: seg});
 				} else {
-					if(isNotCtx) {
+					if(!isCtx) {
 						part.push({type: "group", elements: groups[seg], index: ""+nextidx});
 						nextidx += 1;
 					} else {
@@ -301,6 +357,7 @@ function mkSCPart(str, groups, isNotCtx) {
 				}
 			}
 		} else {
+			// Try matching a nonce group
 			let noncematch = remainder.match(nextNonce);
 			if(noncematch != null && remainder.indexOf(noncematch[0]) == 0) {
 				let nonce = noncematch[0];
@@ -308,6 +365,7 @@ function mkSCPart(str, groups, isNotCtx) {
 				nonce = nonce.slice(1);
 				let parts = nonce.split("}");
 				let group = mkGroup(parts[0]);
+				// Allow nesting named groups within nonce groups
 				let elements = [];
 				for(element of group) {
 					if(groups[element]) {
@@ -316,18 +374,20 @@ function mkSCPart(str, groups, isNotCtx) {
 						elements.push(element);
 					}
 				}
-				if(parts[1].length == 0) {
-					if(isNotCtx) {
+				if(parts[1].length > 0) {
+					// Group has an index
+					if(!isCtx) {
+						part.push({type: "group", elements: elements, index: "_"+parts[1]});
+					} else {
+						errors.push("Indexes cannot be applied in the context: " + str)
+					}
+				} else {
+					// Group does not have an index
+					if(!isCtx) {
 						part.push({type: "group", elements: elements, index: ""+nextidx});
 						nextidx += 1;
 					} else {
 						part.push({type: "group", elements: elements});
-					}
-				} else {
-					if(isNotCtx) {
-						part.push({type: "group", elements: elements, index: "_"+parts[1]});
-					} else {
-						errors.push("Indexes cannot be applied in the context: " + str)
 					}
 				}
 			} else {
