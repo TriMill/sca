@@ -97,7 +97,7 @@
 		<div class="section">
 		<h2>Unicode wackyness</h2>
 		<p>
-		All input text is <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize">normalized</a>, meaning that whenever possible combining diacritics are merged with the characters they modify to create single characters. For example, <code>é</code> is made up of two characters (the letter 'e' and a combining accent), so it gets converted to <code>é</code>, a single character representing 'e' with an accent. 
+		If the "Normalize input and output" box is checked, all input text is <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize">normalized</a>, meaning that whenever possible combining diacritics are merged with the characters they modify to create single characters. For example, <code>é</code> is made up of two characters (the letter 'e' and a combining accent), so it gets converted to <code>é</code>, a single character representing 'e' with an accent. You will usually want to keep this checked, but in some cases (eg. specifying tone or stress) you may want to uncheck this.
 		</p>
 		<p>
 		This fixes most of the problems, but not all combinations of diacrics and characters gets its own codepoint. An example where this might be an issue is <code>{ɛɨ}/{ɛ̃ɨ̃}/_n</code>. Since the ɛ̃ and ɨ̃ in this example are composed of two characters, the second category gets parsed into <code>[ɛ, ˜, ɨ, ˜]</code>, which is clearly not what is intended. A similar problem occurs with the <code>?</code> operator, since it will only apply to the character immediately preceding it. In general avoid using combining diacritics, but if you must use them you can comma-separate your collections (<code>{ɛ,ɨ}/{ɛ̃,ɨ̃}/_n</code>).
@@ -108,7 +108,7 @@
 		<div class="section">
 		<h1>Debugging, bug reports, and contact</h1>
 		<p>
-		If your sound changes aren't working as expected, open the browser console (Ctrl+Shift+K on Firefox, Ctrl+Shift+J on Chrome), type <code>logChanges=true</code>, and press Enter. Click "Apply" again to view a list of all changes that were applied. For more complete debug information, type <code>debug=true</code> and press Enter.
+		If your sound changes aren't working as expected, check "Log all changes applied to the console", open the browser console (Ctrl+Shift+K on Firefox, Ctrl+Shift+J on Chrome) and click "Apply" again to view a list of all changes that were applied. For more complete debug information, check "Print debug information to the console".
 		</p>
 		<p>
 		If you find a bug, please create an issue at <a href="https://github.com/trimill/sca/issues/">this repository's issues page</a>. If applicable, make sure to include example rules and input, expected output, actual output, and the debug output as described above.
