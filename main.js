@@ -196,7 +196,13 @@ function checkContext(word, idx, dir, ctx) {
 			options = segment.elements;
 			let found = false;
 			for(i in options) {
-				if(dir == 1) {
+				if(options[i] == "#") {
+					if(dir == 1 && idx >= word.length) {
+						return true;
+					} else if(dir == -1 && idx < 0) {
+						return true;
+					}
+				} else if(dir == 1) {
 					if(word.slice(idx).startsWith(options[i])) {
 						idx += options[i].length;
 						found = true;
@@ -233,7 +239,7 @@ function checkContext(word, idx, dir, ctx) {
 
 // Regexes to detect the next groups
 const nextSegment = /[^\/→={}\[\]_#,;?0123456789\(\)](?:[0-9]+)?/;
-const nextNonce = /{[^\/→={}\[\]_#;?0123456789\(\)]+}(?:[0-9]+)?/;
+const nextNonce = /{[^\/→={}\[\]_;?0123456789\(\)]+}(?:[0-9]+)?/;
 
 /*
  * Parse the list of rules into a JS object.
@@ -245,6 +251,7 @@ function parseRules(rules) {
 	};
 	let groups = {};
 	for(rule of rules) {
+		rule = rule.replace("→", "/");
 		if(rule.startsWith(";")) {
 			// comment
 			continue;
@@ -413,11 +420,13 @@ function mkChangePart(str, groups, isCtx) {
 }
 
 function mkGroup(str) {
+	let res;
 	if(str.includes(",")) {
-		return str.split(",").filter(s => s.length > 0);
+		res = str.split(",");
 	} else {
-		return str.split("").filter(s => s.length > 0);
+		res = str.split("");
 	}
+	return res.filter((el, i, arr) => el.length > 0 && arr.indexOf(el) === i)
 }
 
 function escapeHTML(str){

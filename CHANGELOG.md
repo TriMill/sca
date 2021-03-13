@@ -2,6 +2,8 @@
 
 ## 1.1 (TBD)
 * Added wildcards
+* Option to use → instead of first /
+* Word boundaries can be included in groups
 
 ## 1.0 (2021-03-09)
 * Created changelog

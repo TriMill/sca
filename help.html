@@ -34,7 +34,7 @@
 		<div class="section">
 		<h2>Basic syntax</h2>
 		<p>
-		The basic syntax is very similar to that used in the Index Diachronica. An example sound change is <code>k/kʷ/_u</code>, which reads as "replace all instance of <code>k</code> with <code>kʷ</code> whenever followed by <code>u</code>". The section before the first slash is what to find (the target), after the first slash is what to replace it with (the replacement), and (optionally) after the second slash is the environment to perform the replacement in (the context). Each rule must be listed on its own line in the "Rules" field.
+		The basic syntax is very similar to that used in the Index Diachronica. An example sound change is <code>k/kʷ/_u</code>, which reads as "replace all instance of <code>k</code> with <code>kʷ</code> whenever followed by <code>u</code>". The section before the first slash is what to find (the target), after the first slash is what to replace it with (the replacement), and (optionally) after the second slash is the environment to perform the replacement in (the context). Each rule must be listed on its own line in the "Rules" field. The first slash can optionally be replaced with an arrow (→) to improve readability.
 		</p>
 		<p>
 		If the replacement is left empty, the rule will delete anything matching it. If the context is left empty or ommited the rule will apply to all matches of the target. The target cannot be left empty.
@@ -84,6 +84,9 @@
 		<h2>Word boundaries</h2>
 		<p>
 		Use the # symbol (called a hash, pound sign, or octothorpe) to indicate a word boundary. This can be used before the _ (where it will search for the beginning of a word) or after the _ (where it will search for the end). Any characters before a beginning # or after an ending # will be ignored.
+		</p>
+		<p>
+		Word boundaries can be included as an option in a group by adding <code>#</code> as an element of the group. For example, <code>e/i/_{mnŋ#}</code> will change e to i whenever followed by a m, n, ŋ, or a word boundary. The # must be in its own option, it can't be used as part of another option, so <code>s/ʃ/_{i,e#}</code> would not work.
 		</p>
 		</div>
 

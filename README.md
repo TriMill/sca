@@ -3,8 +3,6 @@
 Visit https://trimill.github.io/sca/ to use or visit https://trimill.github.io/sca/help.html for help.
 
 ## Planned future additions
-* Accept → as a replacement for the first /
-* Word boundaries in categories
 * Additional slash after context for rule exceptions
 * Better debugging tools
 * Allow rules with context but no target
