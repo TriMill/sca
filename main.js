@@ -91,6 +91,9 @@ function applyRules(rules, input) {
 			let cursorpos = change.context.indexOf("_");
 			let ctx_before = change.context.slice(0,cursorpos).reverse();
 			let ctx_after = change.context.slice(cursorpos+1);
+			let ex_cursorpos = change.ex_context.indexOf("_");
+			let ex_ctx_before = change.ex_context.slice(0,ex_cursorpos).reverse();
+			let ex_ctx_after = change.ex_context.slice(ex_cursorpos+1);
 			// Keep going until the end of the word is reached
 			while(idx < word.length) {
 				let match = checkTarget(word, change.find, idx);
@@ -102,13 +105,33 @@ function applyRules(rules, input) {
 					// "find" found, check context
 					let startIdx = idx-1;
 					let endIdx = match[0];
-					if(
-						(ctx_before.length == 0 || checkContext(word, startIdx, -1, ctx_before))
-						&& (ctx_after.length == 0 || checkContext(word, endIdx, 1, ctx_after))
-					){
-						// context matches
-						result += mkReplacement(change.replace, match[1]);
-						idx = endIdx;
+					if( (ctx_before.length == 0 || checkContext(word, startIdx, -1, ctx_before))
+						&& (ctx_after.length == 0 || checkContext(word, endIdx, 1, ctx_after)) ){
+						// context good, check exception context
+						let good = false;
+
+						if(ex_ctx_before.length == 0 && ex_ctx_after.length == 0) {
+							// no exception context, always good
+							good = true;
+						} else {
+							let ex_ctx_before_match = checkContext(word, startIdx, -1, ex_ctx_before);
+							let ex_ctx_after_match = checkContext(word, endIdx, 1, ex_ctx_after);
+							// this logic was derived via brute-force guessing and checking
+							// do not ask me why it works
+							good = (ex_ctx_before.length == 0 && !ex_ctx_after_match)
+								|| (ex_ctx_after.length == 0 && !ex_ctx_before_match)
+								|| (!ex_ctx_before_match || !ex_ctx_after_match);
+						}
+
+						if(good) {
+							// exception context matches, perform replacement
+							result += mkReplacement(change.replace, match[1]);
+							idx = endIdx;
+						} else {
+							// exception context does not match
+							result += word[idx];
+							idx += 1;
+						}
 					} else {
 						// context does not match
 						result += word[idx];
@@ -230,7 +253,7 @@ function checkContext(word, idx, dir, ctx) {
 		} else if(segment.type == "wildcard") {
 			if(word[idx] == undefined) {
 				return false
-			}
+			} 
 			idx += dir;
 		}
 	}
@@ -268,15 +291,18 @@ function parseRules(rules) {
 		} else if(rule.includes("/")) {
 			// sound change
 			let parts = rule.split("/");
-			if(parts.length < 2 || parts.length > 3) {
+			if(parts.length < 2 || parts.length > 4) {
 				// rule must have two or three parts
 				res.errors.push("Invalid sound change declaration: " + rule);
 			} else {
-				if(parts.length == 2) {
+				if(parts.length <= 2) {
 					// no context given, rule applies everywhere
 					parts[2] = "_";
 				}
-
+				if(parts.length <= 3) {
+					// no context given, rule applies everywhere
+					parts[3] = "_";
+				}
 				let target = mkChangePart(parts[0], groups, false);
 				// target must not be empty
 				if(target[0].length > 0) {
@@ -291,8 +317,9 @@ function parseRules(rules) {
 					if(foundRequired) {
 						let replace = mkChangePart(parts[1], groups, false);
 						let ctx = mkChangePart(parts[2], groups, true);
-						res.errors = res.errors.concat(target[1]).concat(replace[1]).concat(ctx[1]);
-						res.changes.push({find: target[0], replace: replace[0], context: ctx[0]});
+						let ex_ctx = mkChangePart(parts[3], groups, true);
+						res.errors = res.errors.concat(target[1]).concat(replace[1]).concat(ctx[1]).concat(ex_ctx[1]);
+						res.changes.push({find: target[0], replace: replace[0], context: ctx[0], ex_context: ex_ctx[0]});
 					} else {
 						res.errors.push("Target must have at least one required segment: " + rule);
 					}
