@@ -175,12 +175,20 @@ function checkTarget(word, find, startIdx) {
 			let groupidx = segment.index;
 			let options = segment.elements;
 			let found = false;
-			for(i in options) {
-				if(word.slice(idx).startsWith(options[i])) {
+			if(groupHits[groupidx]) {
+				let ch = options[groupHits[groupidx]]
+				if(word.slice(idx).startsWith(ch)) {
 					idx += options[i].length;
-					groupHits[groupidx] = i;
 					found = true;
-					break;
+				}
+			} else {
+				for(i in options) {
+					if(word.slice(idx).startsWith(options[i])) {
+						idx += options[i].length;
+						groupHits[groupidx] = i;
+						found = true;
+						break;
+					}
 				}
 			}
 			if(!found && !segment.optional) {
@@ -398,16 +406,12 @@ function mkChangePart(str, groups, isCtx) {
 			remainder = remainder.slice(seg.length);
 			if(seg.length > 1) {
 				// Segment has an index
-				if(!isCtx) {
-					let idx = seg.slice(1);
-					seg = seg[0];
-					if(!Object.keys(groups).includes(seg)) {
-						errors.push("Index given for character instead of group: " + str);
-					} else {
-						part.push({type: "group", elements: groups[seg], index: "_"+idx});
-					}
+				let idx = seg.slice(1);
+				seg = seg[0];
+				if(!Object.keys(groups).includes(seg)) {
+					errors.push("Index given for character instead of group: " + str);
 				} else {
-					errors.push("Indexes cannot be applied in the context: " + str)
+					part.push({type: "group", elements: groups[seg], index: "_"+idx});
 				}
 			} else {
 				// Segment does not have an index

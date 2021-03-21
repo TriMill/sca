@@ -75,8 +75,18 @@
 		<p>
 		is equivalent to <code>{ptkfsʃ}/{bdgvzʒ}/V_V</code>. Named categories cannot be nested inside other named categories.
 		</p>
+		</div>
+
+		<div class="section">
+		<h2>Category indexing</h2>
 		<p>
 		If multiple categories are used in the target or the replacement they will automatically be paired up based on the order they appear in. For example, in <code>{td}{iu}/{cɟ}{eo}</code> {td} is paired with {cɟ} and {iu} is paired with {eo}. Sometimes this does not give the desired results. In <code>{td}{iu}/ɟ{eo}</code>, {td} instead gets paired with {eo} and {iu} is left unpaired. To fix this, matching numbers can be inserted after the categories that you want to be paired. The previous example would then become <code>{td}{iu}1/ɟ{eo}1</code>. This works for both categories and nonce categories.
+		</p>
+		<p>
+		If two categories are given the same index in the target they will also be paired. In <code>N1sN1/M1</code>, for example, the two instances of N1 must be the same.
+		</p>
+		<p>
+		Category indexing in the context is not done by default, but can be done by explicitly adding numbers. This indexing is independent from that in the target and replacement, so in <code>P1/D1/A1_E1</code>, P1 and D1 will be paired, A1 and E1 will be paired, but no further pairing will occur. This will result in the rule only applying when the character before the match has the same index in A as the character after the match has in E.
 		</p>
 		</div>
 

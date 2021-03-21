@@ -6,6 +6,7 @@
 * Word boundaries can be included in groups
 * Added rule exceptions
 * Added intermediate results
+* Fixed category pairing in the target, added it in the context
 
 ## 1.0 (2021-03-09)
 * Created changelog
