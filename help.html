@@ -40,7 +40,7 @@
 		If the replacement is left empty, the rule will delete anything matching it. If the context is left empty or ommited the rule will apply to all matches of the target. The target cannot be left empty.
 		</p>
 		<p>
-		Any line in the "Rules" field beginning with a semicolon (;) will be ignored, which can be used to add comments.
+		Any line in the "Rules" field beginning with a single semicolon (;) will be ignored, which can be used to add comments. See "Intermediate results" below for lines beginning with two semicolons.
 		</p>
 		</div>
 
@@ -108,6 +108,13 @@
 		<h2>Rule exceptions</h2>
 		<p>
 		Sometimes you may want a rule to apply in all contexts <i>except</i> some. This can be accomplished by adding another slash after the context, and specifying the context the rule should not apply after this slash. For example, <code>r/ɾ/_/_{fv}</code> will replace r with ɾ everywhere except when followed by f or v. If the exception string is a single <code>_</code>, it will be ignored.
+		</p>
+		</div>
+
+		<div class="section">
+		<h2>Intermediate results</h2>
+		<p>
+		By default, only the final words are show. The checkbox "Show output as <code>before → after</code>" will show both the initial and final form of the word. To show intermediate forms, add a line beginning with <code>;;</code> to the rules list and check "Show intermediate results" (this implicitly enables the previous checkbox too). If desired, you may leave a comment after the two semicolons.
 		</p>
 		</div>
 

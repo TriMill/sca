@@ -5,6 +5,7 @@
 * Option to use → instead of first /
 * Word boundaries can be included in groups
 * Added rule exceptions
+* Added intermediate results
 
 ## 1.0 (2021-03-09)
 * Created changelog

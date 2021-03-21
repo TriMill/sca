@@ -17,6 +17,8 @@ function applyClicked(event) {
 	window.debug = document.getElementById("enable-debug").checked;
 	window.logChanges = document.getElementById("log-changes").checked;
 	let doNormalize = document.getElementById("normalize").checked;
+	let intermediates = document.getElementById("intermediates").checked;
+	if(intermediates) document.getElementById("output-style").checked = true;
 	let outputStyle = document.getElementById("output-style").checked;
 	let rules = document.getElementById("rules").value;
 	let input = document.getElementById("input").value;
@@ -63,10 +65,12 @@ function applyClicked(event) {
 	// Apply the rules to the input
 	let outputResults = applyRules(pRules, input);
 	let outputText;
-	if(outputStyle) {
-		outputText = outputResults.map((el, idx) => input[idx] + " → " + el).join("\n");
+	if(intermediates) {
+		outputText = outputResults.map((el, idx) => input[idx] + " → " + el.join(" → ")).join("\n");
+	} else if(outputStyle) {
+		outputText = outputResults.map((el, idx) => input[idx] + " → " + el[el.length-1]).join("\n");
 	} else {
-		outputText = outputResults.join("\n");
+		outputText = outputResults.map(x => x[x.length-1]).join("\n");
 	}
 	if(doNormalize) {
 		outputText = outputText.normalize();
@@ -85,7 +89,12 @@ function applyClicked(event) {
 function applyRules(rules, input) {
 	let output = [];
 	for(word of input) {
+		output.push([]);
 		for(change of rules.changes) {
+			if(change.intermediate) {
+				output[output.length-1].push(word);
+				continue;
+			}
 			let result = "";
 			let idx = 0;
 			let cursorpos = change.context.indexOf("_");
@@ -144,7 +153,7 @@ function applyRules(rules, input) {
 				word = result;
 			}
 		}
-		output.push(word);
+		output[output.length-1].push(word);
 	}
 	return output;
 }
@@ -275,9 +284,11 @@ function parseRules(rules) {
 	let groups = {};
 	for(rule of rules) {
 		rule = rule.replace("→", "/");
-		if(rule.startsWith(";")) {
-			// comment
-			continue;
+		if(rule.startsWith(";;")) {
+			// intermediate
+			res.changes.push({intermediate: true});
+		} else if(rule.startsWith(";")) {
+			//comment
 		} else if(rule.includes("=")) {
 			// group creation
 			let parts = rule.split("=");
@@ -301,6 +312,14 @@ function parseRules(rules) {
 				}
 				if(parts.length <= 3) {
 					// no context given, rule applies everywhere
+					parts[3] = "_";
+				}
+				if(!parts[2].includes("_")) {
+					res.errors.push("Context does not include an underscore: " + parts[2]);
+					parts[2] = "_";
+				}
+				if(!parts[3].includes("_")) {
+					res.errors.push("Exception context does not include an underscore: " + parts[3]);
 					parts[3] = "_";
 				}
 				let target = mkChangePart(parts[0], groups, false);

@@ -5,7 +5,6 @@ Visit https://trimill.github.io/sca/ to use or visit https://trimill.github.io/s
 ## Planned future additions
 * Better debugging tools
 * Allow rules with context but no target
-* Intermediate results
 * Ellipsis (accepts an unlimited number of characters)
 
 ## Potential future additions
