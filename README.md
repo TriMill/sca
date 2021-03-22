@@ -1,6 +1,6 @@
 # TriSCA
 
-Visit https://trimill.github.io/sca/ to use or visit https://trimill.github.io/sca/help.html for help.
+Visit https://trimill.github.io/sca/ to use or visit https://trimill.github.io/sca/help.html for help. See `CHANGELOG.md` for a list of changes between versions.
 
 ## Planned future additions
 * Better debugging tools

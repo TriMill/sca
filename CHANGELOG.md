@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1 (TBD)
+## 1.1 (2021-03-22)
 * Added wildcards
 * Option to use → instead of first /
 * Word boundaries can be included in groups
