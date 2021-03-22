@@ -446,11 +446,7 @@ function mkChangePart(str, groups, isCtx) {
 				}
 				if(parts[1].length > 0) {
 					// Group has an index
-					if(!isCtx) {
-						part.push({type: "group", elements: elements, index: "_"+parts[1]});
-					} else {
-						errors.push("Indexes cannot be applied in the context: " + str)
-					}
+					part.push({type: "group", elements: elements, index: "_"+parts[1]});
 				} else {
 					// Group does not have an index
 					if(!isCtx) {
